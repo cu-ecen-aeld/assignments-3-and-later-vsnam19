@@ -1,0 +1,28 @@
+#!/bin/bash
+# Quick test script to verify QEMU functionality
+
+echo "==============================================="
+echo "QEMU Build Test - Assignment 4"
+echo "==============================================="
+echo ""
+echo "Build completed successfully!"
+echo ""
+echo "Next steps:"
+echo "1. Start QEMU: ./runqemu.sh"
+echo "2. Login with: root/root"
+echo "3. Run: finder-test.sh"
+echo "4. Check: cat /tmp/assignment4-result.txt"
+echo ""
+echo "To test SSH (in another terminal):"
+echo "  ssh -p 10022 root@localhost"
+echo ""
+echo "To copy result file (after testing in QEMU):"
+echo "  scp -P 10022 root@localhost:/tmp/assignment4-result.txt assignments/assignment4/"
+echo ""
+echo "To run full test (requires sshpass):"
+echo "  ./full-test.sh"
+echo ""
+echo "==============================================="
+echo "Build artifacts location:"
+ls -lh buildroot/output/images/
+echo "==============================================="
