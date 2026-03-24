@@ -29,9 +29,32 @@
 struct aesd_buffer_entry *aesd_circular_buffer_find_entry_offset_for_fpos(struct aesd_circular_buffer *buffer,
             size_t char_offset, size_t *entry_offset_byte_rtn )
 {
-    /**
-    * TODO: implement per description
-    */
+    uint8_t i;
+    uint8_t valid_entries;
+    size_t accumulated = 0;
+
+    // If the buffer is empty, return NULL
+    if (!buffer->full && buffer->in_offs == buffer->out_offs)
+        return NULL;
+
+    // Determine the number of valid entries in the buffer
+    if (buffer->full) { // If buffer is full
+        valid_entries = AESDCHAR_MAX_WRITE_OPERATIONS_SUPPORTED;
+    } else if (buffer->in_offs >= buffer->out_offs) {
+        valid_entries = buffer->in_offs - buffer->out_offs;
+    } else {
+        valid_entries = AESDCHAR_MAX_WRITE_OPERATIONS_SUPPORTED - (buffer->out_offs - buffer->in_offs);
+    }
+
+    for (i = 0; i < valid_entries; i++) {
+        uint8_t idx = (buffer->out_offs + i) % AESDCHAR_MAX_WRITE_OPERATIONS_SUPPORTED;
+        if (char_offset < accumulated + buffer->entry[idx].size) {
+            *entry_offset_byte_rtn = char_offset - accumulated;
+            return &buffer->entry[idx];
+        }
+        accumulated += buffer->entry[idx].size;
+    }
+
     return NULL;
 }
 
@@ -47,6 +70,17 @@ void aesd_circular_buffer_add_entry(struct aesd_circular_buffer *buffer, const s
     /**
     * TODO: implement per description
     */
+    if (buffer->full) {
+        memcpy((struct aesd_buffer_entry* )&buffer->entry[buffer->out_offs], add_entry, sizeof(struct aesd_buffer_entry));
+        buffer->out_offs = (buffer->out_offs + 1) % AESDCHAR_MAX_WRITE_OPERATIONS_SUPPORTED;
+        buffer->in_offs = (buffer->in_offs + 1) % AESDCHAR_MAX_WRITE_OPERATIONS_SUPPORTED;
+    } else {
+        memcpy((struct aesd_buffer_entry* )&buffer->entry[buffer->in_offs], add_entry, sizeof(struct aesd_buffer_entry));
+        buffer->in_offs = (buffer->in_offs + 1) % AESDCHAR_MAX_WRITE_OPERATIONS_SUPPORTED;
+        if (buffer->in_offs == buffer->out_offs) {
+            buffer->full = true;
+        }
+    }
 }
 
 /**
